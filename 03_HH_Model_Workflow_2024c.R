@@ -25,7 +25,7 @@ output_path1 <- paste0(drive_path, "Output_Data/Pop_Rasters/")
 
 #Load data
 pop_data <-  read.csv(paste0(input_path, "Malawi_2024_data.csv"))
-shapefile <- st_read(paste0(shapefile_path, "2018_MPHC_EAs_Final_for_Use_Corrected.shp"))
+shapefile <- st_read(paste0(shapefile_path, "2018_MPHC_EAs_Final_for_Use.shp"))
 
 #create unique id for each district
 pop_data <- pop_data %>% 
