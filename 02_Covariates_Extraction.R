@@ -61,14 +61,18 @@ bcount_2024_extract <- bcount_2024_extract |>
          microsoft_PIB = sum.buildings_count_PIB_ms_100m_v1_1)
 
 #Extract non residential bcount
-non_res <- rast(paste0(input_path, "non_res_raster.tif"))
-
-non_res_extract <- exactextractr::exact_extract(non_res, ea, fun = 'sum')
-
-#convert to tibille
-non_res_extract <- non_res_extract |> 
-  as_tibble() |> 
-  rename(non_res_bcount = value)
+# Check if non_res_raster.tif exists before loading
+non_res_path <- paste0(input_path, "non_res_raster.tif")
+if (file.exists(non_res_path)) {
+  non_res <- rast(non_res_path)
+  non_res_extract <- exactextractr::exact_extract(non_res, ea, fun = 'sum')
+  non_res_extract <- non_res_extract |> 
+    as_tibble() |> 
+    rename(non_res_bcount = value)
+} else {
+  non_res_extract <- NULL
+  message("non_res_raster.tif not found, skipping non-res extraction.")
+}
 
 
 #####################################################################################
@@ -83,8 +87,15 @@ non_res_extract <- non_res_extract |>
 raster_list <-list.files(path=covs_path_2024, pattern= ".tif$", all.files=TRUE, full.names=FALSE)
 raster_list
 
-#Stack all covariates 
+#Stack all unique covariates
 raster_2024_covariates <- rast(paste0(covs_path_2024, c(raster_list)))
+
+# Find duplicate layer names
+dup_names <- names(raster_2024_covariates)[duplicated(names(raster_2024_covariates))]
+
+# Remove layers with duplicate names (keep only the first occurrence)
+unique_layers <- !duplicated(names(raster_2024_covariates))
+raster_2024_covariates <- raster_2024_covariates[[unique_layers]]
 
 #Extract rasters using their mean values
 tic()
@@ -97,7 +108,7 @@ toc()
 var_names <- names(raster_2024_extract)
 
 #Change names
-colnames(raster_2024_extract) <- c(paste0('x', 1:64))
+colnames(raster_2024_extract) <- c(paste0('x', 1:length(raster_2024_extract)))
 
 #Extract names of raster
 var_names2<- names(raster_2024_extract)
@@ -127,9 +138,15 @@ lat_long <- lat_long %>%
 
 
 #Cbind raster_extract to ea
-ea_2024 <- ea %>% 
-  cbind(bcount_2024_extract, non_res_extract, raster_2024_extract, lat_long) |> 
-  as_tibble()
+if (file.exists(non_res_path)) {
+  ea_2024 <- ea %>% 
+    cbind(bcount_2024_extract, non_res_extract, raster_2024_extract, lat_long) |> 
+    as_tibble()
+} else {
+  ea_2024 <- ea %>% 
+    cbind(bcount_2024_extract, raster_2024_extract, lat_long) |> 
+    as_tibble()
+}
 
 #convert pop data to character
 pop_data <- pop_data |> 
@@ -173,14 +190,22 @@ rename(google_v2_5 = sum.buildings_count_2018_glv2_5_t0_5_C_100m_v1,
  microsoft_BCB = sum.buildings_count_BCB_ms_100m_v1_1)
 
 #Extract non residential bcount
-non_res <- rast(paste0(input_path, "non_res_raster.tif"))
+# Check if non_res_raster.tif exists before loading
+non_res_path <- paste0(input_path, "non_res_raster.tif")
+if (file.exists(non_res_path)) {
+  non_res <- rast(paste0(input_path, "non_res_raster.tif"))
+  
+  non_res_extract <- exactextractr::exact_extract(non_res, ea, fun = 'sum')
+  
+  #convert to tibille
+  non_res_extract <- non_res_extract |> 
+    as_tibble() |> 
+    rename(non_res_bcount = value)
+} else {
+  non_res_extract <- NULL
+  message("non_res_raster.tif not found, skipping non-res extraction.")
+}
 
-non_res_extract <- exactextractr::exact_extract(non_res, ea, fun = 'sum')
-
-#convert to tibille
-non_res_extract <- non_res_extract |> 
-  as_tibble() |> 
-  rename(non_res_bcount = value)
 
 # Extract 2018 covariates -------------------------------------------------
 
@@ -191,6 +216,10 @@ raster_list
 
 #Stack all covariates 
 raster_2018_covariates <- rast(paste0(covs_path_2018, c(raster_list)))
+
+# Remove layers with duplicate names (keep only the first occurrence)
+unique_layers_2018 <- !duplicated(names(raster_2018_covariates))
+raster_2018_covariates <- raster_2018_covariates[[unique_layers_2018]]
 
 #Extract rasters using their mean values
 tic()
@@ -203,7 +232,7 @@ toc()
 var_names <- names(raster_2018_extract)
 
 #Change names
-colnames(raster_2018_extract) <- c(paste0('x', 1:64))
+colnames(raster_2018_extract) <- c(paste0('x', 1:length(raster_2018_extract)))
 
 #Extract names of raster
 var_names2<- names(raster_2018_extract)
@@ -233,9 +262,16 @@ lat_long <- lat_long %>%
 
 
 #Cbind raster_extract to ea
-ea_2018 <- ea %>% 
-  cbind(bcount_2018_extract, non_res_extract, raster_2018_extract, lat_long) |> 
-  as_tibble()
+if (file.exists(non_res_path)) {
+  ea_2018 <- ea %>% 
+    cbind(bcount_2018_extract, non_res_extract, raster_2018_extract, lat_long) |> 
+    as_tibble()
+} else {
+  ea_2018 <- ea %>% 
+    cbind(bcount_2018_extract, raster_2018_extract, lat_long) |> 
+    as_tibble()
+  
+}
 
 #convert pop data to character
 pop_data <- pop_data |> 
