@@ -41,7 +41,7 @@ Before running the main scripts, data pre-processing steps are required. Please 
 
 Run the following scripts in order for a typical workflow:
 
-1.  `01_Raster_Mosaicking_Buildings_2018.R`  - successfully run
+1.  `01_Raster_Mosaicking_Buildings_2018.R` - successfully run
 2.  `01_Raster_Mosaicking_Buildings_2024.R` - successfully run
 3.  `01_Raster_Mosaicking_Workflow_2018.R` - successfully run
 4.  `01_Raster_Mosaicking_Workflow_2024.R` - successfully run
@@ -51,10 +51,11 @@ Run the following scripts in order for a typical workflow:
 8.  `02_Covariates_Extraction.R` - successfully run - with caveat modified to work without data created in `04_Rasterize.R`
 
 ## Modelling scripts
+
 In progress - see [Model code review of the project wiki](https://github.com/datasciencecampus/WorldPop-Malawi-fork/wiki/Model-code-review)
 
+The important script in this section is `03_HH_Model_Workflow_2024.R`
 
 ## Additional Resources
 
 -   [Full Project Wiki](https://github.com/datasciencecampus/WorldPop-Malawi-fork/wiki)
-
