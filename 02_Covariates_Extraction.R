@@ -90,12 +90,10 @@ raster_list
 #Stack all unique covariates
 raster_2024_covariates <- rast(paste0(covs_path_2024, c(raster_list)))
 
-# Find duplicate layer names
-dup_names <- names(raster_2024_covariates)[duplicated(names(raster_2024_covariates))]
+names(raster_2024_covariates) <- sources(raster_2024_covariates) %>% 
+  lapply(str_split_i, "/", -1) %>%
+  lapply(str_split_i, ".tif", 1)
 
-# Remove layers with duplicate names (keep only the first occurrence)
-unique_layers <- !duplicated(names(raster_2024_covariates))
-raster_2024_covariates <- raster_2024_covariates[[unique_layers]]
 
 #Extract rasters using their mean values
 tic()
