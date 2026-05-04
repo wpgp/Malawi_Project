@@ -28,11 +28,12 @@ This project requires R and the following R packages:
 -   inlabru
 -   feather
 -   raster
+-   glmnet
 
 To install all required packages, run this in your R console:
 
 ``` r
-install.packages(c("tidyverse", "sf", "tictoc", "terra", "exactextractr", "haven", "nngeo", "INLA", "gstat", "spdep", "car", "caret", "kableExtra", "inlabru", "feather", "raster"))
+install.packages(c("tidyverse", "sf", "tictoc", "terra", "exactextractr", "haven", "nngeo", "INLA", "gstat", "spdep", "car", "caret", "kableExtra", "inlabru", "feather", "raster", "glmnet"))
 ```
 
 ## Data Pre-processing
