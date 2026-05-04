@@ -9,6 +9,8 @@ library(haven)
 library(tidyverse)
 #library(foreign)
 
+source("utils.R")
+
 options(scipen = 999) # turn off scientific notation for all variables
 
 #Specify Drive Path
@@ -845,10 +847,10 @@ if (file.exists(zomba_data_path)){
 ####################################################################################
 ######### PROCESS MALEMA DISTRICT DATA ################################################ 
 
-malemia_data_path <- file.path(input_path, "malemia_hh_without_IDs.csv") ## FILE MISSING!
+malemia_data_path <- file.path(input_path, "malemia_hh_without_IDs.csv")
 
 if (file.exists(malemia_data_path)) {
-  malemia_data <- read.csv(malemia_data_path) ## FILE MISSING!
+  malemia_data <- read.csv(malemia_data_path)
   
   #Add a new column to data called hh_count
   malemia_data <- malemia_data %>%  
@@ -890,6 +892,7 @@ if (file.exists(malemia_data_path)) {
     summarise(malemia_hh_count = sum(hh_count, na.rm = T)) %>% 
     #zomba_pop = sum(household_size, na.rm = T)) %>%  
     ungroup() 
+  print("Malemia data processed")
 } else {
   print("Malemia data cannot be found. Skipping processing of this for now.")
 }
