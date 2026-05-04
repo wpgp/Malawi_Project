@@ -10,26 +10,6 @@ This is the `ons-compatability-updates` branch, which includes updates for compa
 
 ## Dependencies
 
-This project requires R and the following R packages:
-
--   tidyverse
--   sf
--   tictoc
--   terra
--   exactextractr
--   haven
--   nngeo
--   INLA
--   gstat
--   spdep
--   car
--   caret
--   kableExtra
--   inlabru
--   feather
--   raster
--   glmnet
-
 To install all required packages, run this in your R console:
 
 ``` r
@@ -47,7 +27,7 @@ Run the following scripts in order for a typical workflow:
 3.  `01_Raster_Mosaicking_Workflow_2018.R` - successfully run
 4.  `01_Raster_Mosaicking_Workflow_2024.R` - successfully run
 5.  `00_Data_Processing.R` - successfully run
-6.  `00_Data_Processing2.R` - successfully run - caveat "missing files"
+6.  `00_Data_Processing2.R` - successfully run
 7.  `04_Rasterize.R` - not used in modelling and not run
 8.  `02_Covariates_Extraction.R` - successfully run - with caveat modified to work without data created in `04_Rasterize.R`
 
