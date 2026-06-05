@@ -34,8 +34,6 @@ glimpse(Ntholowa)
 Malemia_hh <- read_csv("malemia_hh_without_IDs.csv")
 
 #standardize column labels
-
-
 standardise_names <- function(df) {
   df %>%
     rename_with(~ "household_number",
@@ -51,6 +49,7 @@ Malemia     <- standardise_names(Malemia)
 Mbiza       <- standardise_names(Mbiza)
 Mkumbira    <- standardise_names(Mkumbira)
 Mlumbe      <- standardise_names(Mlumbe)
+Mwambo      <- standardise_names(Mwambo)
 Mwembere    <- standardise_names(Mwembere)
 Ngwelero    <- standardise_names(Ngwelero)
 Nkagula     <- standardise_names(Nkagula)
@@ -61,7 +60,6 @@ Ntholowa    <- standardise_names(Ntholowa)
 colnames(Chikowi)
 
 #Merge files
-
 zomba_rbind_data <- bind_rows(
   Chikowi,
   chimbalanga,
@@ -70,6 +68,7 @@ zomba_rbind_data <- bind_rows(
   Malemia,
   Mbiza,
   Mkumbira,
+  Mwambo,
   Mlumbe,
   Mwembere,
   Ngwelero,
