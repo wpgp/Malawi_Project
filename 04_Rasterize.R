@@ -16,7 +16,6 @@ bcount_path_2024 <- paste0(drive_path, "Input_Data/Mosaic_Buildings_2024/")
 #Load datasets
 ea <- st_read(file.path(shapefile_path, "2018_MPHC_EAs_Final_for_Use.shp")) # replaces "EA_Shapefile.shp"
 bcount <- rast(file.path(bcount_path_2024, "MOS_MLW_buildings_count_2023_glv2_5_t0_5_C_100m_v1.tif"))
-country <- st_read(file.path(shapefile_path, "Country_Shapefile.shp"))
 hh_size <- read.csv(paste0(output_path, "summarized_survey_data.csv"))
 mphc_structures_2018 <- st_read(paste0(output_path, "mphc_structures_points.gpkg"))
 mphc_2018_sf <- st_read(paste0(output_path, "mphc_2018_sf_ea.gpkg"))
@@ -45,10 +44,25 @@ hh_size <- hh_size |>
 hh_ea <-full_join(ea, hh_size, by = "EA_CODE")
 
 # Rasterize Country ------------------------------------------------------
+country_data_filename <- "Country_Shapefile.shp"
+if(file.exists(file.path(shapefile_path, country_data_filename))) {
+  country <- st_read(file.path(shapefile_path, country_data_filename))
+} else {
+  country <- generate_buffered_country_boundary(shape_path = shapefile_path,
+                                                file_name = country_data_filename,
+                                                buffer = 0)
+}
 
 country <- st_transform(country, crs = st_crs(bcount))
 
-country_raster <- rasterize(country, bcount, field = "Country_ID")
+# Convert to sf object, set original CRS (same as EA data), then transform
+country <- st_as_sf(country) %>%
+  st_set_crs(st_crs(ea)) %>%  # Set to EA's original CRS
+  st_transform(crs = st_crs(bcount)) %>%  # Transform to WGS84
+  st_make_valid() %>%  # Fix invalid geometry
+  mutate(Country_ID = 1)
+
+country_raster <- terra::rasterize(country, bcount, field = "Country_ID")
 plot(country_raster)
 
 #stack rasters
