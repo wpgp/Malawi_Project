@@ -594,7 +594,8 @@ sum(Naca_data$hh_count)
 #####################################################################################
 ####################################################################################
 ######### PROCESS DHS Listing DATA ################################################ 
-
+# Data sent by NSO was "MDHS 2024 HH_Listing_EA.xlxs" which is in "MNSO-Data". This
+# file was converted to csv, called "DHS_Segmented_File.csv" and added to Output_data
 
 dhs_file_path <- file.path(input_path, "DHS_Segmented_File.csv")
 if (!file.exists(dhs_file_path)) {
