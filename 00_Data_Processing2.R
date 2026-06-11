@@ -9,6 +9,8 @@ library(haven)
 library(tidyverse)
 #library(foreign)
 
+source("utils.R")
+
 options(scipen = 999) # turn off scientific notation for all variables
 
 #Specify Drive Path
@@ -784,9 +786,16 @@ dhs_hh_size<-  dhs_centroids_sf %>%
 ####################################################################################
 ######### PROCESS ZOMBA DISTRICT DATA ################################################ 
 
+# NSO has given 14 csvs that need to be rbound - function in utils.R
+rbind_zomba_csvs(
+    csv_dir = file.path(input_path, "zomba_csv"),
+    output_file = file.path(output_path,"zomba_rbind_data.csv")
+)
+
 zomba_data_path <- file.path(output_path, "zomba_rbind_data.csv")
+
 if (file.exists(zomba_data_path)){
-  zomba_data <- read.csv(zomba_data_path) ## FILE MISSING!
+  zomba_data <- read.csv(zomba_data_path)
   
   #Add a new column to data called hh_count
   zomba_data <- zomba_data %>%  
@@ -828,6 +837,8 @@ if (file.exists(zomba_data_path)){
     summarise(zomba_hh_count = sum(hh_count, na.rm = T),
               zomba_pop = sum(household_size, na.rm = T)) %>%  
     ungroup() 
+  
+  print("Zomba data processed")
 } else {
   print("The Zomba data cannot be found. Skipping processing of this data for now.")
 }
@@ -836,10 +847,10 @@ if (file.exists(zomba_data_path)){
 ####################################################################################
 ######### PROCESS MALEMA DISTRICT DATA ################################################ 
 
-malemia_data_path <- file.path(input_path, "malemia_hh_without_IDs.csv") ## FILE MISSING!
+malemia_data_path <- file.path(input_path, "malemia_hh_without_IDs.csv")
 
 if (file.exists(malemia_data_path)) {
-  malemia_data <- read.csv(malemia_data_path) ## FILE MISSING!
+  malemia_data <- read.csv(malemia_data_path)
   
   #Add a new column to data called hh_count
   malemia_data <- malemia_data %>%  
@@ -881,6 +892,7 @@ if (file.exists(malemia_data_path)) {
     summarise(malemia_hh_count = sum(hh_count, na.rm = T)) %>% 
     #zomba_pop = sum(household_size, na.rm = T)) %>%  
     ungroup() 
+  print("Malemia data processed")
 } else {
   print("Malemia data cannot be found. Skipping processing of this for now.")
 }
