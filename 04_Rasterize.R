@@ -53,17 +53,27 @@ if(file.exists(file.path(shapefile_path, country_data_filename))) {
                                                 buffer = 0)
 }
 
-country <- st_transform(country, crs = st_crs(bcount))
+# Handle both outputs from generate_buffered_country_boundary(): sf or bare sfc geometry.
+country <- if (inherits(country, "sf")) {
+  country
+} else {
+  st_as_sf(country)
+}
 
-# Convert to sf object, set original CRS (same as EA data), then transform
-country <- st_as_sf(country) %>%
-  st_set_crs(st_crs(ea)) %>%  # Set to EA's original CRS
-  st_transform(crs = st_crs(bcount)) %>%  # Transform to WGS84
-  st_make_valid() %>%  # Fix invalid geometry
-  mutate(Country_ID = 1)
+# If geometry came back without CRS, assume EA CRS because country was derived from EA union.
+if (is.na(st_crs(country))) {
+  country <- st_set_crs(country, st_crs(ea))
+}
 
-country_raster <- terra::rasterize(country, bcount, field = "Country_ID")
-plot(country_raster)
+country <- country %>%
+  st_transform(crs = st_crs(bcount)) %>%
+  st_make_valid() %>%
+  mutate(Country_ID = 1L)
+
+# Rasterize from terra vector for consistent behavior.
+country_raster <- terra::rasterize(terra::vect(country), bcount, field = "Country_ID", touches = TRUE)
+plot(country_raster, col = "#e63946", plg = list(title = "country_id"))
+plot(terra::as.polygons(country_raster, dissolve = TRUE), add = TRUE, border = "black", lwd = 0.6)
 
 #stack rasters
 stack_raster <- c(bcount, country_raster)
