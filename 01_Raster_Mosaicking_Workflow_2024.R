@@ -16,7 +16,7 @@ boundary_data_filename <- "Country_Shapefile_Buffer_10km.shp"
 if(file.exists(file.path(shp_path, boundary_data_filename))) {
   boundary <- st_read(file.path(shp_path, boundary_data_filename))
 } else {
-  boundary <- generate_buffered_country_boundary(shp_path, boundary_data_filename)
+  boundary <- generate_buffered_country_boundary(shape_path = shp_path, file_name = boundary_data_filename, buffer = 10E3)
 }
 
 r1 <- rast(file.path(building_path, "mwi_buildings_count_2023_glv2_5_t0_5_C_100m_v1.tif"))

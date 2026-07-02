@@ -28,7 +28,7 @@ Run the following scripts in order for a typical workflow:
 4.  `01_Raster_Mosaicking_Workflow_2024.R` - successfully run
 5.  `00_Data_Processing.R` - successfully run
 6.  `00_Data_Processing2.R` - successfully run
-7.  `04_Rasterize.R` - not used in modelling and not run
+7.  `04_Rasterize.R` - mostly not used except for "# Rasterize Country" (line 47)
 8.  `02_Covariates_Extraction.R` - successfully run - with caveat modified to work without data created in `04_Rasterize.R`
 
 ## Modelling scripts
