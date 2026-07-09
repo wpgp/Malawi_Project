@@ -6,3 +6,6 @@
 *.Rproj
 
 data/*
+
+# temporary measure .github may be useful for CI/CD workflows in the future
+.github/*
