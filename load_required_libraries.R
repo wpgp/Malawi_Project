@@ -22,20 +22,21 @@ load_libraries <- function(library_names) {
 
 # Add any required packages to this list
 required_libraries <- c(
-  "sf", # package for handling spatial data
-  "tidyverse", # tidyverse
-  "haven", # package for import foreign statistical formats
-  "terra", # package for spatial data analysis
-  "tictoc", # package for timing R Scripts
-  "exactextractr", # zonal statistics of polygons
-  "gstat", # Spatial and Spatio-Temporal Geostatistical Modelling, Prediction and Simulation
-  "spdep", # spatial dependence and weights
   "car", # Companion to Applied Regression
   "caret", # Classification And REgression Training
-  "kableExtra", # for html tables
-  "inlabru", # package for Bayesian spatial modelling 
+  "exactextractr", # zonal statistics of polygons
   "feather", # reading and writing feather files
-  "nngeo" # nearest neighbour in geospatial
+  "sf", # package for handling spatial data
+  "gstat", # Spatial and Spatio-Temporal Geostatistical Modelling, Prediction and Simulation
+  "haven", # package for import foreign statistical formats
+  "inlabru", # package for Bayesian spatial modelling 
+  "kableExtra", # for html tables
+  "nngeo", # nearest neighbour in geospatial
+  "spdep", # spatial dependence and weights
+  "terra", # package for spatial data analysis
+  "tictoc", # package for timing R Scripts
+  "tidyverse", # tidyverse
+  "yaml", # used to read in config
 )
 
 # Execute code to load (and install) libraries
