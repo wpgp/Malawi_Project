@@ -1,4 +1,5 @@
 library(sf)
+library(yaml)
 
 generate_buffered_country_boundary <- function(
     shape_path,
@@ -81,4 +82,21 @@ rbind_zomba_csvs <- function(csv_dir, output_file){
   write.csv(zomba_rbind_data, output_path, row.names = FALSE)
 
   return()
+}
+
+
+#' Loads the yaml config
+#'
+#' @param config_path (str, pathlike) path to config file. If not provided will
+#'     default to "./src/config.yaml"
+#' 
+load_config <- function(config_path = NULL){
+
+  if (is.null(config_path)) {
+    config_path <- file.path("src", "config.yaml")
+  }
+
+  config <- yaml::read_yaml(config_path)
+
+  return(config)
 }
