@@ -90,6 +90,7 @@ rbind_zomba_csvs <- function(csv_dir, output_file){
 #' @param config_path (str, pathlike) path to config file. If not provided will
 #'     default to "./src/config.yaml"
 #' 
+#' @return config (??) file containing configuration options for the pipeline.
 load_config <- function(config_path = NULL){
 
   if (is.null(config_path)) {
@@ -97,6 +98,6 @@ load_config <- function(config_path = NULL){
   }
 
   config <- yaml::read_yaml(config_path)
-
+  print(typeof(config))
   return(config)
 }
