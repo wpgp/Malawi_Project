@@ -13,7 +13,7 @@ This is the `ons-compatability-updates` branch, which includes updates for compa
 To install all required packages, run this in your R console:
 
 ``` r
-install.packages(c("tidyverse", "sf", "tictoc", "terra", "exactextractr", "haven", "nngeo", "INLA", "gstat", "spdep", "car", "caret", "kableExtra", "inlabru", "feather", "raster", "glmnet", "yaml"))
+install.packages(c("tidyverse", "sf", "tictoc", "terra", "exactextractr", "haven", "nngeo", "INLA", "gstat", "spdep", "car", "caret", "kableExtra", "inlabru", "feather", "raster", "glmnet", "yaml", "modelsummary"))
 ```
 
 ## Data Pre-processing
