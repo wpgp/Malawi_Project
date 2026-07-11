@@ -1,5 +1,60 @@
 # file contains helper functions used during the data processing steps
 library(sf)
+library(logger)
+
+
+#' Applies cleaning steps to the census data
+#' 
+#' @param mphc_data (tibble) census data to clean, this usually will be mphc_2018
+#' 
+#' @return mphc_pop_no_gps (tibble) cleaned census data, with age summary.
+#' 
+clean_census_data <- function(mphc_data){    
+    #Mutate and add a  variable called no_persons = 1 (individual record)
+    mphc_data <- mphc_data %>% 
+    mutate(no_persons = 1)  # Individual observation
+
+    # Filter records without GPS coordinates
+    log_info("filtering records with no GPS")
+    mphc_data_no_gps <- mphc_data %>% 
+    filter(is.na(hh_longitude) | is.na(hh_latitude))
+
+    #Add additional digits to EA and TA code
+    log_info("Pad digits of identifier codes")
+    mphc_data_no_gps <- mphc_data_no_gps %>%  
+    mutate(new_ta = str_pad(ta, width = 2, pad = 0),
+            new_ea = str_pad(ea, width = 3, pad = 0))
+
+    # NOTE: currently errors with this 
+    # log_info(paste0("Unique Values for 'new_ta' column:",unique(mphc_data_no_gps$new_ta)))
+    # log_info(paste0("Unique Values for 'new_ea' column:",unique(mphc_data_no_gps$new_ea)))
+
+    #Create EA_CODE by concatenating district, new_ta and new_ea code
+    mphc_data_no_gps <- mphc_data_no_gps %>%  
+    mutate(EA_CODE = str_c(district, new_ta, new_ea),
+            new_ta_ea = str_c(new_ta, new_ea),
+            unique_hh_id = str_c(EA_CODE, hhnumber))
+
+    ## Summarise no gps data at EA 
+
+    #total population
+    mphc_pop_no_gps <- mphc_data_no_gps %>%  
+    group_by(EA_CODE) %>%  
+    summarise(mphc_total_pop = sum(no_persons, na.rm = T),
+                mphc_hh_count = n_distinct(hhnumber),   #Distinct count of household
+                male_count   = sum(p03 == 1, na.rm = TRUE),
+                female_count = sum(p03 == 2, na.rm = TRUE))
+    
+    # summarise EA counts by age
+    # this works on it's own but not here?
+    age_summary <- summarise_age(mphc_pop_no_gps)
+
+    #Join age summary to population data
+    mphc_pop_no_gps <- mphc_pop_no_gps %>%  
+    left_join(age_summary, by = "EA_CODE")
+
+    return(mphc_pop_no_gps)
+}
 
 
 #' Summarise EA counts by age column for the given dataset.
