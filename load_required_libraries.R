@@ -31,6 +31,7 @@ required_libraries <- c(
   "haven", # package for import foreign statistical formats
   "inlabru", # package for Bayesian spatial modelling 
   "kableExtra", # for html tables
+  "logger", # used for logging in the pipeline
   "modelsummary", # used to quickly produce DataFrame summaries 
   "nngeo", # nearest neighbour in geospatial
   "spdep", # spatial dependence and weights
