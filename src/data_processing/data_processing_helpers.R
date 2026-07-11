@@ -110,52 +110,61 @@ summarise_age <- function(df, age_col = "p05", ea_col = "EA_CODE") {
 
 #' Checks that the mphc geopakage exists and creates one if not.
 #' 
-#' Both the 'output_path' 'gpkg_file_path' will be replaced by the config's geopak
+#' 'gpkg_file_path' will be replaced by a value from the config
 #' 
 #' @param mphc_df (tibble) dataframe containing census data. Only used when no
 #'      gpkg existing
-#' @param input path (filepath-like, Optional) File path where the mphc data can
-#'      should b. Defaults to "mphc_2018_sf_ea.gpkg"
-check_mphc_gpkg_exists <- function(mphc_df, input_path, sources ){
+#' @param ea_shapefile (??) shapefile containing the current EA's 
+#' @param mphc_sf_filepath (filepath-like) filepath where mphc gpkg expected to be
+#'      found.
+check_mphc_gpkg_exists <- function(mphc_df, ea_shapefile, mphc_sf_filepath){
 
-    
-    mphc_2018_sf_filepath <- file.path(config$paths$output_path, gpkg_file_path)
-    if (!file.exists(mphc_2018_sf_filepath)) {
-    print("The geopackage version of mphc_2018 is not available, creating dataframe and saving to disk.")
-    
-    # Convert remaining mphc_2018 data to shapefiles
-    
-    #Convert to sf object
-    mphc_2018_sf <- mphc_df %>%
-    drop_na(hh_longitude, hh_latitude) %>%
-    st_as_sf(coords = c("hh_longitude", "hh_latitude"))
-    
-    #set the spatial reference
-    st_crs(mphc_2018_sf) <- 4326
+    if (!file.exists(mphc_sf_filepath)) {
+        log_info("The geopackage version of mphc_2018 is not available, creating dataframe and saving to disk.")
+        
+        # Convert remaining mphc_2018 data to shapefiles
+        
+        #Convert to sf object
+        log_info("Converting to shapefile object..")
+        mphc_2018_sf <- mphc_df %>%
+        drop_na(hh_longitude, hh_latitude) %>%
+        st_as_sf(coords = c("hh_longitude", "hh_latitude"))
+        
+        #set the spatial reference
+        log_info("Setting spatial reference..")
+        st_crs(mphc_2018_sf) <- 4326
 
-    #Fix corrupt geometries
-    st_make_valid(ea)
+        #Fix corrupt geometries
+        log_info("Fixing corrupt geometries..")
+        st_make_valid(ea_shapefile)
 
-    #Turn off invalid geometries
-    sf::sf_use_s2(FALSE)
+        #Turn off invalid geometries
+        sf::sf_use_s2(FALSE)
 
-    #transform
-    mphc_2018_sf <- st_transform(mphc_2018_sf, crs = st_crs(ea))
+        #transform
+        log_info("applying transfomation..")
+        mphc_2018_sf <- st_transform(mphc_2018_sf, crs = st_crs(ea_shapefile))
 
-    # EA Nearest Neighbor Assignment
-    nearest_indices <- st_nearest_feature(mphc_2018_sf, ea)
+        # EA Nearest Neighbor Assignment
+        log_info("Assigning Ea's nearest neighbours..")
+        nearest_indices <- st_nearest_feature(mphc_2018_sf, ea_shapefile)
 
-    # Extract the EA_CODE  of the nearest polygons
-    nearest_ids <- ea$EA_CODE[nearest_indices]
+        # Extract the EA_CODE  of the nearest polygons
+        log_info("extracting EA_CODE of nearest polygons..")
+        nearest_ids <- ea_shapefile$EA_CODE[nearest_indices]
 
-    # Add the EA_CODE to data
-    mphc_2018_sf$EA_CODE <- nearest_ids
+        # Add the EA_CODE to data
+        log_info("Add EA_CODE to data..")
+        mphc_2018_sf$EA_CODE <- nearest_ids
 
-    #Write to file
-    st_write(mphc_2018_sf ,
-    dsn = file.path(output_path, "mphc_2018_sf_ea.gpkg"),
-    driver = "GPKG",
-    delete_layer = TRUE
-    )
+        #Write to file
+        log_info("Writing gpkg file...")
+        st_write(mphc_2018_sf ,
+        dsn = file.path(output_path, "mphc_2018_sf_ea.gpkg"),
+        driver = "GPKG",
+        delete_layer = TRUE
+        )
+        
+        log_info("Geopackage successfully saved to: ", output_path, "/mphc_2018_sf_ea.gpkg")
     }
 }
