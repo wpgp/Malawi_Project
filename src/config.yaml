@@ -25,6 +25,7 @@ sources:
   mphc:
     required: true
     data_file: mphc2018Data_AllRegions.dta
+    gpkg_file: mphc_2018_sf_ea.gpkg
     household_id_col: hhnumber
     longitude_col: hh_longitude
     latitude_col: hh_latitude
