@@ -1,5 +1,6 @@
 # file contains helper functions used during the data processing steps
 library(sf)
+library(tidyverse)
 library(logger)
 
 
@@ -93,16 +94,16 @@ summarise_age <- function(df, age_col = "p05", ea_col = "EA_CODE") {
         TRUE ~ NA_character_
     )) %>%  
     # summarise counts per EA_CODE × age_group
-    group_by(EA_CODE, age_group) %>%  
+    group_by(across(all_of(c(ea_col, "age_group")))) %>%  
     summarise(count = n(), .groups = "drop") %>%  
-    arrange(EA_CODE, age_group)%>%  
+    arrange(across(all_of(c(ea_col, "age_group")))) %>%  
     #Pivot to wide columns
     pivot_wider(
         names_from = age_group,
         values_from = count,
         values_fill = 0
     ) %>%  
-    arrange(EA_CODE)
+    arrange(across(all_of(ea_col)))
 
 
     return(age_summary_df)
@@ -160,11 +161,11 @@ check_mphc_gpkg_exists <- function(mphc_df, ea_shapefile, mphc_sf_filepath){
         #Write to file
         log_info("Writing gpkg file...")
         st_write(mphc_2018_sf ,
-        dsn = file.path(output_path, "mphc_2018_sf_ea.gpkg"),
+        dsn = mphc_sf_filepath,
         driver = "GPKG",
         delete_layer = TRUE
         )
         
-        log_info("Geopackage successfully saved to: ", output_path, "/mphc_2018_sf_ea.gpkg")
+        log_info(paste("Geopackage successfully saved to:", mphc_sf_filepath))
     }
 }

@@ -2,6 +2,7 @@
 # it is called upon in main.R
 #
 # TODO: This script needs a better name!
+library(sf)
 library(nngeo)
 library(haven)
 library(tidyverse)
@@ -28,7 +29,7 @@ data_dirs <- config$paths
 
 drive_path <- data_dirs$drive_path
 input_path <- file.path(drive_path, data_dirs$mnso_data_dir)
-output_path <- file.path(drive_path, data_dirs$output_dirs)
+output_path <- file.path(drive_path, data_dirs$output_dir)
 shapefile_path <- file.path(drive_path, data_dirs$shapefile_dir)
 
 data_sources <- config$sources
@@ -39,32 +40,18 @@ ICT_data <- read_dta(file.path(input_path, data_sources$ict$data_file))
 IHS6_data <- read_dta(file.path(input_path, data_sources$ihs6$data_file))
 Naca_data <- read_dta(file.path(input_path, data_sources$naca$data_file))
 dhs_data <- read_dta(file.path(input_path, data_sources$dhs_survey$data_file))
-dhs_listing <- read_dta(file.path(input_path, data_sources$dhs_list$data_file))
+dhs_listing <- read_dta(file.path(input_path, data_sources$dhs_listing$data_file))
 
 ea <- st_read(file.path(shapefile_path, "2018_MPHC_EAs_Final_for_Use.shp")) # replaces "2018_MPHC_EAs_Final_for_Use_Corrected.shp"
 log_info("dp1 - .. config and datasets loaded successfully")
 
-
-log_info("dp2 - cleaning census data")
-mphc_pop_no_gps <- clean_census_data(mphc_2018)
-
 #' This function will process all steps in the data_processing_2 pipeline
 #' 
-#' 
+#' Returns the currently extracted census-processing slice so `main.R` and the
+#' QA summary can operate on a real intermediate while refactoring continues.
 data_processing_wrapper <- function() {
+    log_info("dp2 - cleaning census data")
+    mphc_pop_no_gps <- clean_census_data(mphc_2018)
 
-    # setup
-
-    ## this section includes loading config, variables and any datasets
-    
-
-
-    # data processing
-
-    ## this section calls in functions from the  helper script to clean
-    ## and process the data
-
-    # output section
-
-    ## write out outputs here
+    return(mphc_pop_no_gps)
 }
