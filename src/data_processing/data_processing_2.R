@@ -15,7 +15,7 @@ source("src/data_processing/data_processing_helpers.R")
 #' This function will process all steps in the data_processing_2 pipeline
 #'
 #'
-data_processing_wrapper <- function() {
+data_processing_2_function <- function() {
 
 log_info("Begining data Processing,")
 
