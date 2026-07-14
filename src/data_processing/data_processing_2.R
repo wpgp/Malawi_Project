@@ -42,7 +42,7 @@ data_processing_wrapper <- function() {
   ea <- sf::st_read(file.path(shapefile_path, "2018_MPHC_EAs_Final_for_Use.shp"))
   log_info("dp1 - .. config and datasets loaded successfully")
 
-  # data processing
+  # data processing 2
   ## this section calls in functions from the  helper script to clean
   ## and process the data
 

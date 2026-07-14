@@ -4,14 +4,14 @@ library(logger)
 
 
 #' Applies cleaning steps to the census data
-#' 
+#'
 #' @param mphc_data (tibble) census data to clean, this usually will be mphc_2018
-#' 
+#'
 #' @return list containing the cleaned no-GPS census data and the EA summary.
-#' 
-clean_census_data <- function(mphc_data){    
+#'
+clean_census_data <- function(mphc_data){
   #Mutate and add a  variable called no_persons = 1 (individual record)
-  mphc_data <- mphc_data %>% 
+  mphc_data <- mphc_data %>%
   mutate(no_persons = 1)  # Individual observation
 
   # Filter records without GPS coordinates

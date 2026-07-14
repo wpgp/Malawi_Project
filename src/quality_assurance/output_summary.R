@@ -16,7 +16,7 @@ library("tidyverse")
 #' @param output_file (character) Path to output HTML file. Must contain 
 #'      filetype ".html".
 #' 
-produce_csv_summary <- function(output_df, output_fileL){
+produce_csv_summary <- function(output_df, output_file){
     summary <- datasummary_skim(data = output_df,output = output_file)
     
     return(summary)
