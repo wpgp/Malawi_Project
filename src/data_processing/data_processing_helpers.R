@@ -1,5 +1,6 @@
 # file contains helper functions used during the data processing steps
 library(sf)
+library(tidyverse)
 library(logger)
 
 
@@ -104,7 +105,7 @@ summarise_age <- function(df, age_col = "p05", ea_col = "EA_CODE") {
         values_from = count,
         values_fill = 0
     ) %>%  
-    arrange(EA_CODE)
+    arrange(across(all_of(ea_col)))
 
 
   return(age_summary_df)
@@ -162,6 +163,7 @@ check_mphc_gpkg_exists <- function(mphc_df, ea_shapefile, mphc_sf_filepath){
         #Write to file
         log_info("Writing gpkg file...")
         st_write(mphc_2018_sf ,
+        dsn = mphc_sf_filepath,
         dsn = mphc_sf_filepath,
         driver = "GPKG",
         delete_layer = TRUE
