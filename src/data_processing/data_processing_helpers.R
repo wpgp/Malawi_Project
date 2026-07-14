@@ -164,7 +164,6 @@ check_mphc_gpkg_exists <- function(mphc_df, ea_shapefile, mphc_sf_filepath){
         log_info("Writing gpkg file...")
         st_write(mphc_2018_sf ,
         dsn = mphc_sf_filepath,
-        dsn = mphc_sf_filepath,
         driver = "GPKG",
         delete_layer = TRUE
         )
