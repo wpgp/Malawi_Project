@@ -97,7 +97,7 @@ summarise_age <- function(df, age_col = "p05", ea_col = "EA_CODE") {
     # summarise counts per EA_CODE × age_group
     group_by(.data[[ea_col]], age_group) %>%  
     summarise(count = n(), .groups = "drop") %>%  
-    rename(EA_CODE = .data[[ea_col]]) %>%
+    rename(EA_CODE = all_of(ea_col)) %>%
     arrange(EA_CODE, age_group)%>%  
     #Pivot to wide columns
     pivot_wider(
@@ -301,7 +301,7 @@ process_gps_household_data <- function(
         filter(.data[[accuracy_col]] < gps_accuracy_threshold_m) %>%
         group_by(.data[[reassigned_ea_col]]) %>%
         summarise(hh_count = sum(hh_count, na.rm = T), .groups = "drop") %>%
-        rename(!!source_ea_col := .data[[reassigned_ea_col]]) %>%
+        rename(!!source_ea_col := all_of(reassigned_ea_col)) %>%
         rename(!!output_count_col := hh_count)
 
     survey_rbind <- bind_rows(no_gps, greater, less) %>%
