@@ -190,8 +190,8 @@ log_info("dp1 - .. config and datasets loaded successfully")
   st_write(
     hh_ea,
     config$outputs$data_processing2_hh_size_gpkg,
-    file.path(output_path, config$outputs$hh_size_gpkg),
-    append = T
+    driver = "GPKG",
+    delete_layer = TRUE
   )
 
   invisible(NULL)
