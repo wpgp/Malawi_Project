@@ -83,12 +83,18 @@ sources:
     latitude_col: hh_latitude
 
 outputs:
-  summarized_csv: summarized_survey_data.csv
-  hh_size_gpkg: hh_size_data.gpkg
-  zomba_rbind_csv: zomba_rbind_data.csv
+  data_processing2_summarized_csv: ./data/Output_Data/summarized_survey_data.csv
+  data_processing2_hh_size_gpkg: ./data/Output_Data/hh_size_data.gpkg
+  data_processing2_zomba_rbind_csv: ./data/Output_Data/zomba_rbind_data.csv
 
-qa:
-  baseline_summarized_csv: ./data/Output_Data/summarized_survey_data.csv
+data_processing2_qa:
+  report_prefix: data_processing2
+  current_summarized_csv_output_key: data_processing2_summarized_csv
+  current_hh_size_gpkg_output_key: data_processing2_hh_size_gpkg
+  baseline_summarized_csv: ./data/baseline/summarized_survey_data.csv
+  baseline_hh_size_gpkg: ./data/baseline/hh_size_data.gpkg
+
+qa_results:
   baseline_manifest: ./data/qa/baseline_manifest.md
   baseline_summary_markdown: ./data/qa/baseline_metrics.md
   baseline_missing_values_csv: ./data/qa/baseline_missing_values.csv

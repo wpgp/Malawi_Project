@@ -175,7 +175,7 @@ log_info("dp1 - .. config and datasets loaded successfully")
   log_info("dp11 - writing summarized survey csv")
   write.csv(
     output_df,
-    file.path(output_path, config$outputs$summarized_csv),
+    config$outputs$data_processing2_summarized_csv,
     row.names = FALSE
   )
 
@@ -189,6 +189,7 @@ log_info("dp1 - .. config and datasets loaded successfully")
 
   st_write(
     hh_ea,
+    config$outputs$data_processing2_hh_size_gpkg,
     file.path(output_path, config$outputs$hh_size_gpkg),
     append = T
   )
