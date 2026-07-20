@@ -1,0 +1,213 @@
+---
+title: "WorldPop Malawi — Pipeline Run Report"
+date: "`r format(Sys.time(), '%Y-%m-%d %H:%M:%S')`"
+output:
+  html_document:
+    theme: flatly
+    highlight: tango
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    self_contained: true
+params:
+  run_timestamp:   NULL
+  timepoint:       NULL
+  log_file:        NULL
+  qa_summary_csv:  NULL
+  qa_column_report_csv: NULL
+  qa_duplicate_csv: NULL
+---
+
+```{css, echo=FALSE}
+/* ---- status badges ---- */
+.badge-pass    { background:#27ae60; color:#fff; padding:6px 14px; border-radius:4px; font-size:1.1em; font-weight:bold; }
+.badge-fail    { background:#e74c3c; color:#fff; padding:6px 14px; border-radius:4px; font-size:1.1em; font-weight:bold; }
+.badge-skipped { background:#95a5a6; color:#fff; padding:6px 14px; border-radius:4px; font-size:1.1em; font-weight:bold; }
+.badge-warn    { background:#f39c12; color:#fff; padding:6px 14px; border-radius:4px; font-size:1.1em; font-weight:bold; }
+
+/* ---- log styling ---- */
+.log-block     { font-family: monospace; font-size: 0.82em; background:#1e1e1e; color:#d4d4d4;
+                 padding:12px; border-radius:4px; max-height:360px; overflow-y:auto; }
+.log-error     { color:#f44747; font-weight:bold; }
+.log-warn      { color:#ce9178; }
+.log-info      { color:#9cdcfe; }
+
+/* ---- QA table highlight ---- */
+.tbl-pass td   { background:#eafaf1; }
+.tbl-fail td   { background:#fdedec; }
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# ── Helper: load a csv or return empty tibble ──────────────────────────────────
+load_or_empty <- function(path, ...) {
+  if (!is.null(path) && file.exists(path)) read.csv(path, stringsAsFactors = FALSE, ...)
+  else tibble::tibble()
+}
+
+# ── Load QA artefacts from paths passed via params ────────────────────────────
+qa_summary_raw  <- load_or_empty(params$qa_summary_csv)
+qa_col_raw      <- load_or_empty(params$qa_column_report_csv)
+qa_dup_raw      <- load_or_empty(params$qa_duplicate_csv)
+
+# ── Load log file from path passed via params ──────────────────────────────────
+if (!is.null(params$log_file) && file.exists(params$log_file)) {
+  raw_log_lines <- readLines(params$log_file)
+} else {
+  raw_log_lines <- c()
+}
+
+# Classify each log line
+classify_log <- function(lines) {
+  lvl <- dplyr::case_when(
+    grepl("^ERROR|\\bERROR\\b", lines) ~ "ERROR",
+    grepl("^WARN|\\bWARN\\b",   lines) ~ "WARN",
+    TRUE                               ~ "INFO"
+  )
+  data.frame(level = lvl, text = lines, stringsAsFactors = FALSE)
+}
+log_df <- classify_log(raw_log_lines)
+
+n_errors <- sum(log_df$level == "ERROR")
+n_warns  <- sum(log_df$level == "WARN")
+
+# Overall status from QA
+overall_status <- if (nrow(qa_summary_raw) == 0) "SKIPPED" else {
+  statuses <- unique(qa_summary_raw$status)
+  if ("FAIL" %in% statuses) "FAIL" else if ("PASS" %in% statuses) "PASS" else "SKIPPED"
+}
+
+status_badge_class <- switch(overall_status,
+  PASS    = "badge-pass",
+  FAIL    = "badge-fail",
+  SKIPPED = "badge-skipped"
+)
+```
+
+---
+
+## Run summary
+
+```{r run-summary-table}
+tibble::tibble(
+  Field = c("Timestamp", "Timepoint", "Log errors", "Log warnings", "QA status"),
+  Value = c(
+    params$run_timestamp,
+    params$timepoint,
+    as.character(n_errors),
+    as.character(n_warns),
+    overall_status
+  )
+) %>%
+  kable(col.names = NULL) %>%
+  kable_styling(bootstrap_options = c("condensed", "hover"), full_width = FALSE) %>%
+  row_spec(5, bold = TRUE,
+    background = switch(overall_status, PASS = "#eafaf1", FAIL = "#fdedec", "#f5f5f5"))
+```
+
+**Overall QA status:** <span class="`r status_badge_class`">`r overall_status`</span>
+
+---
+
+## Pipeline log
+
+```{r log-section, results='asis'}
+# Show WARN and ERROR prominently first
+flagged <- log_df[log_df$level %in% c("WARN", "ERROR"), ]
+
+if (nrow(flagged) > 0) {
+  cat("### ⚠ Warnings and errors\n\n")
+  cat('<div class="log-block">\n')
+  for (i in seq_len(nrow(flagged))) {
+    cls <- if (flagged$level[i] == "ERROR") "log-error" else "log-warn"
+    cat(sprintf('<div class="%s">%s</div>\n', cls, htmltools::htmlEscape(flagged$text[i])))
+  }
+  cat('</div>\n\n')
+} else {
+  cat("### ✓ No warnings or errors\n\n")
+}
+```
+
+<details>
+<summary>Show full log (`r nrow(log_df)` lines)</summary>
+```{r full-log, results='asis'}
+cat('<div class="log-block">\n')
+for (i in seq_len(nrow(log_df))) {
+  cls <- switch(log_df$level[i], ERROR = "log-error", WARN = "log-warn", "log-info")
+  cat(sprintf('<div class="%s">%s</div>\n', cls, htmltools::htmlEscape(log_df$text[i])))
+}
+cat('</div>\n')
+```
+</details>
+
+---
+
+## QA results
+
+```{r qa-status-banner, results='asis'}
+cat(sprintf('<p style="font-size:1.2em">Pipeline QA status: <span class="%s">%s</span></p>\n',
+  status_badge_class, overall_status))
+```
+
+### Per-script summary
+
+```{r qa-summary-table}
+qa_summary_raw %>%
+  mutate(
+    `Columns compared`   = total_columns_compared,
+    `Value mismatches`   = total_mismatches,
+    `Duplicate keys (current)` = total_current_duplicate_keys,
+    `Duplicate keys (baseline)` = total_baseline_duplicate_keys,
+    `Key drift datasets` = datasets_with_duplicate_key_drift,
+    Status = status
+  ) %>%
+  select(Script = report_prefix, Status,
+         `Columns compared`, `Value mismatches`,
+         `Duplicate keys (current)`, `Duplicate keys (baseline)`,
+         `Key drift datasets`) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = TRUE) %>%
+  row_spec(which(qa_summary_raw$status == "PASS"), background = "#eafaf1") %>%
+  row_spec(which(qa_summary_raw$status == "FAIL"), background = "#fdedec")
+```
+
+### Duplicate key detail
+
+```{r qa-dup-table}
+qa_dup_raw %>%
+  mutate(
+    `Key drift` = ifelse(duplicate_key_drift, "⚠ YES", "✓ No"),
+    `Current duplicates` = ifelse(current_duplicate_key_count == 0, "None",
+      paste0(current_duplicate_key_count, " (", current_duplicate_keys, ")")),
+    `Baseline duplicates` = ifelse(baseline_duplicate_key_count == 0, "None",
+      paste0(baseline_duplicate_key_count, " (see full report)"))
+  ) %>%
+  select(Dataset = dataset, `Key drift`, `Current duplicates`, `Baseline duplicates`) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = TRUE) %>%
+  row_spec(which(qa_dup_raw$duplicate_key_drift), background = "#fdedec")
+```
+
+### Column mismatch detail
+
+```{r qa-col-table}
+if (nrow(qa_col_raw[qa_col_raw$mismatches > 0, ]) > 0) {
+  qa_col_raw[qa_col_raw$mismatches > 0, ] %>%
+    select(Dataset = dataset, Column = column,
+           `Total rows` = total_rows, Mismatches = mismatches,
+           `% mismatch` = pct_mismatch) %>%
+    kable() %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = TRUE) %>%
+    row_spec(seq_len(nrow(qa_col_raw[qa_col_raw$mismatches > 0, ])), background = "#fdedec")
+} else {
+  cat("✓ No column-level mismatches found across all compared datasets.")
+}
+```
+
+---
+
+*Report generated by WorldPop Malawi pipeline — `r params$run_timestamp`*

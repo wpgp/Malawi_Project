@@ -105,6 +105,7 @@ write.csv(
 )
 
 print(all_preprocessing_qa_summary)
+
 # ---- Write structured run log ------------------------------------------------
 output_files_to_log <- unlist(lapply(
     qa_block_names,
@@ -129,6 +130,41 @@ write_run_log(
 )
 
 logger::log_info("Run log written: {run_log_file}")
+
+# ---- Render HTML pipeline report -----------------------------------------------
+tryCatch({
+    # Configure Pandoc (checks system PATH, then Quarto install, then common locations)
+    setup_pandoc()
+    
+    # Locate the QA CSV files that were just written
+    qa_summary_csv_path <- file.path(qa_output_dir, "all_preprocessing_parity_summary.csv")
+    
+    # Build column and duplicate report paths based on report_prefix from config
+    report_prefix <- config$data_processing2_qa$report_prefix  # use first QA block for now
+    qa_col_report_path <- file.path(qa_output_dir, paste0(report_prefix, "_parity_column_report.csv"))
+    qa_dup_report_path <- file.path(qa_output_dir, paste0(report_prefix, "_duplicate_ea_code_report.csv"))
+    
+    report_output_path <- file.path(qa_output_dir, "pipeline_report.html")
+    
+    logger::log_info("Rendering HTML pipeline report...")
+    rmarkdown::render(
+        "src/quality_assurance/pipeline_report.Rmd",
+        output_file = report_output_path,
+        params = list(
+            run_timestamp        = run_id,
+            timepoint            = config$run$timepoint,
+            log_file             = run_log_file,
+            qa_summary_csv       = qa_summary_csv_path,
+            qa_column_report_csv = qa_col_report_path,
+            qa_duplicate_csv     = qa_dup_report_path
+        ),
+        quiet = TRUE
+    )
+    logger::log_info("HTML report written: {report_output_path}")
+    browseURL(report_output_path)
+}, error = function(e) {
+    logger::log_warn("Could not render HTML report: {e$message}")
+})
 
 # user inputs prompt questions
 ## does checks look good?

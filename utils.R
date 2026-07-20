@@ -192,3 +192,58 @@ load_config <- function(config_path = NULL){
   print(typeof(config))
   return(config)
 }
+
+#' Configure Pandoc for rmarkdown/knitr rendering
+#'
+#' Attempts to locate Pandoc in the following order:
+#'   1. Check if RSTUDIO_PANDOC is already set
+#'   2. Look for pandoc in system PATH (Sys.which)
+#'   3. Check for Quarto's bundled Pandoc (C:/Program Files/Quarto/bin/tools on Windows)
+#'   4. Check common Linux/Mac Quarto paths (/usr/local/bin, ~/.local/bin)
+#'
+#' If Pandoc is found, sets RSTUDIO_PANDOC environment variable.
+#' If not found, issues a warning but allows rmarkdown to attempt default behavior.
+#'
+#' @return Invisibly returns the path to Pandoc if found, NULL otherwise.
+#' @examples
+#' setup_pandoc()  # Call once at the start of your script
+#'
+#' @export
+setup_pandoc <- function() {
+    # Check if already set
+    existing_pandoc <- Sys.getenv("RSTUDIO_PANDOC")
+    if (nzchar(existing_pandoc)) {
+        return(invisible(existing_pandoc))
+    }
+    
+    # Try to find pandoc in system PATH
+    pandoc_which <- Sys.which("pandoc")
+    if (nzchar(pandoc_which)) {
+        pandoc_dir <- dirname(pandoc_which)
+        Sys.setenv(RSTUDIO_PANDOC = pandoc_dir)
+        return(invisible(pandoc_dir))
+    }
+    
+    # Try Quarto's bundled Pandoc
+    quarto_paths <- c(
+        "C:/Program Files/Quarto/bin/tools",  # Windows lockdown machine
+        "C:/Program Files (x86)/Quarto/bin/tools",  # Alternative Windows path
+        "/usr/local/opt/quarto/bin/tools",    # macOS
+        "/usr/lib/quarto/bin/tools",          # Linux
+        "/opt/quarto/bin/tools"               # Alternative Linux
+    )
+    
+    for (path in quarto_paths) {
+        if (dir.exists(path)) {
+            Sys.setenv(RSTUDIO_PANDOC = path)
+            return(invisible(path))
+        }
+    }
+    
+    # If nothing found, warn but don't fail
+    warning(
+        "Could not locate Pandoc. rmarkdown may fail unless Pandoc is available in your system PATH. ",
+        "Consider installing Pandoc (https://pandoc.org) or Quarto (https://quarto.org)."
+    )
+    invisible(NULL)
+}
