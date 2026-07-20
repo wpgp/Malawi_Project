@@ -8,6 +8,16 @@ source("utils.R")
 # Load in vars from config needed in main
 config <- load_config()
 
+# ---- Set up per-run log file --------------------------------------------------
+run_id       <- format(Sys.time(), "%Y%m%d_%H%M%S")
+log_dir      <- file.path(config$paths$drive_path, "logs")
+dir.create(log_dir, recursive = TRUE, showWarnings = FALSE)
+run_log_file <- file.path(log_dir, paste0("pipeline_run_", run_id, ".log"))
+
+library(logger)
+logger::log_appender(logger::appender_tee(run_log_file))
+logger::log_threshold(logger::INFO)
+
 # ----
 # section 1
 # previous data processing steps go here, raster mosaicking etc.
@@ -95,6 +105,30 @@ write.csv(
 )
 
 print(all_preprocessing_qa_summary)
+# ---- Write structured run log ------------------------------------------------
+output_files_to_log <- unlist(lapply(
+    qa_block_names,
+    function(qa_block_name) {
+        qa_cfg    <- config[[qa_block_name]]
+        out_key_csv  <- qa_cfg$current_summarized_csv_output_key
+        out_key_gpkg <- qa_cfg$current_hh_size_gpkg_output_key
+        c(
+            if (!is.null(out_key_csv))  config$outputs[[out_key_csv]]  else qa_cfg$current_summarized_csv,
+            if (!is.null(out_key_gpkg)) config$outputs[[out_key_gpkg]] else qa_cfg$current_hh_size_gpkg
+        )
+    }
+))
+
+write_run_log(
+    run_id       = run_id,
+    log_file_path = run_log_file,
+    config       = config,
+    output_files = output_files_to_log,
+    qa_summary   = all_preprocessing_qa_summary,
+    log_dir      = log_dir
+)
+
+logger::log_info("Run log written: {run_log_file}")
 
 # user inputs prompt questions
 ## does checks look good?

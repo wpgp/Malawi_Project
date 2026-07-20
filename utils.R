@@ -85,6 +85,97 @@ rbind_zomba_csvs <- function(csv_dir, output_file){
 }
 
 
+#' Write a structured plain-text run log.
+#'
+#' @param run_id (character) timestamp-based unique run identifier.
+#' @param log_file_path (character) path to the logger output file for this run.
+#' @param config (list) loaded pipeline config.
+#' @param output_files (character vector) paths of output files to summarise.
+#' @param qa_summary (data.frame) QA summary table from run_parity_qa.
+#' @param log_dir (character) directory to write the structured log file to.
+#'
+#' @return (invisible) path to the written log file.
+write_run_log <- function(run_id, log_file_path, config, output_files, qa_summary, log_dir) {
+
+    dir.create(log_dir, recursive = TRUE, showWarnings = FALSE)
+    out_path <- file.path(log_dir, paste0("pipeline_run_", run_id, ".log"))
+
+    lines <- character(0)
+    add <- function(...) lines <<- c(lines, paste0(...))
+
+    add("===== PIPELINE RUN =====")
+    add("Run ID:      ", run_id)
+    add("Timestamp:   ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
+    add("Timepoint:   ", config$run$timepoint)
+    add("User:        ", Sys.getenv("USERNAME", unset = Sys.getenv("USER", unset = "unknown")))
+    add("R version:   ", as.character(getRversion()))
+    add("sf:          ", as.character(utils::packageVersion("sf")))
+    add("tidyverse:   ", as.character(utils::packageVersion("tidyverse")))
+    add("haven:       ", as.character(utils::packageVersion("haven")))
+    add("")
+
+    add("--- CONFIG ---")
+    add("gps_accuracy_threshold_m: ", config$thresholds$gps_accuracy_threshold_m)
+    add("dhs_max_distance_m:       ", config$thresholds$dhs_max_distance_m)
+    add("drive_path:               ", config$paths$drive_path)
+    add("")
+
+    add("--- LOG ---")
+    if (!is.null(log_file_path) && file.exists(log_file_path)) {
+        raw_lines <- readLines(log_file_path, warn = FALSE)
+        lines <- c(lines, raw_lines)
+    } else {
+        add("(no log file captured)")
+    }
+    add("")
+
+    add("--- OUTPUTS ---")
+    for (f in output_files) {
+        if (file.exists(f)) {
+            info <- file.info(f)
+            size_mb <- round(info$size / 1e6, 2)
+            mtime  <- format(info$mtime, "%H:%M:%S")
+            # try to get row count for CSV
+            row_count <- tryCatch({
+                if (grepl("\\.csv$", f, ignore.case = TRUE)) {
+                    nrow(read.csv(f, nrows = 1L, check.names = FALSE)) # just header check
+                    length(readLines(f, warn = FALSE)) - 1L
+                } else {
+                    NA_integer_
+                }
+            }, error = function(e) NA_integer_)
+            row_str <- if (!is.na(row_count)) paste0(row_count, " rows  ") else ""
+            add(sprintf("%-52s %s%s MB  %s", basename(f), row_str, size_mb, mtime))
+        } else {
+            add(basename(f), "  NOT FOUND")
+        }
+    }
+    add("")
+
+    add("--- QA SUMMARY ---")
+    if (!is.null(qa_summary) && nrow(qa_summary) > 0) {
+        for (i in seq_len(nrow(qa_summary))) {
+            r <- qa_summary[i, ]
+            add(sprintf(
+                "%-24s %s  mismatches=%-4s current_dup_keys=%-6s baseline_dup_keys=%s",
+                r$report_prefix,
+                r$status,
+                r$total_mismatches,
+                r$total_current_duplicate_keys,
+                r$total_baseline_duplicate_keys
+            ))
+        }
+    } else {
+        add("(no QA results)")
+    }
+    add("")
+    add("===== END =====")
+
+    writeLines(lines, out_path)
+    invisible(out_path)
+}
+
+
 #' Loads the yaml config
 #'
 #' @param config_path (str, pathlike) path to config file. If not provided will
