@@ -25,7 +25,11 @@ logger::log_threshold(logger::INFO)
 # call in data processing
 data_processing_2_function()
 
-qa_output_dir <- file.path(config$paths$drive_path, "quality_assurance")
+qa_output_dir <- normalizePath(
+    file.path(config$paths$drive_path, "quality_assurance"),
+    mustWork = FALSE
+)
+dir.create(qa_output_dir, recursive = TRUE, showWarnings = FALSE)
 
 # Run QA for every preprocessing QA block in config and create one combined summary.
 qa_block_names <- names(config)[grepl("_qa$", names(config))]
@@ -144,7 +148,10 @@ tryCatch({
     qa_col_report_path <- file.path(qa_output_dir, paste0(report_prefix, "_parity_column_report.csv"))
     qa_dup_report_path <- file.path(qa_output_dir, paste0(report_prefix, "_duplicate_ea_code_report.csv"))
     
-    report_output_path <- file.path(qa_output_dir, "pipeline_report.html")
+    report_output_path <- normalizePath(
+        file.path(qa_output_dir, "pipeline_report.html"),
+        mustWork = FALSE
+    )
     
     logger::log_info("Rendering HTML pipeline report...")
     rmarkdown::render(
@@ -153,10 +160,11 @@ tryCatch({
         params = list(
             run_timestamp        = run_id,
             timepoint            = config$run$timepoint,
-            log_file             = run_log_file,
-            qa_summary_csv       = qa_summary_csv_path,
-            qa_column_report_csv = qa_col_report_path,
-            qa_duplicate_csv     = qa_dup_report_path
+            log_file             = normalizePath(run_log_file, mustWork = FALSE),
+            qa_summary_csv       = normalizePath(qa_summary_csv_path, mustWork = FALSE),
+            qa_column_report_csv = normalizePath(qa_col_report_path, mustWork = FALSE),
+            qa_duplicate_csv     = normalizePath(qa_dup_report_path, mustWork = FALSE),
+            config_path               = normalizePath("src/config.yaml", mustWork = FALSE),
         ),
         quiet = TRUE
     )
