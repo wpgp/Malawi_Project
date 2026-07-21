@@ -32,7 +32,7 @@ clean_census_data <- function(mphc_data){
 
   #Create EA_CODE by concatenating district, new_ta and new_ea code
   mphc_data_no_gps <- mphc_data_no_gps %>%  
-  mutate(EA_CODE = str_c(district, new_ta, new_ea),
+  mutate(EA_CODE = make_ea_code(district, new_ta, new_ea),
           new_ta_ea = str_c(new_ta, new_ea),
           unique_hh_id = str_c(EA_CODE, hhnumber))
 

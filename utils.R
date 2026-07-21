@@ -193,6 +193,25 @@ load_config <- function(config_path = NULL){
   return(config)
 }
 
+#' Construct a nationally unique EA_CODE from census component fields
+#'
+#' Replicates the EA_CODE construction used in the mphc census processing:
+#' EA_CODE = district + zero-padded TA (2 digits) + zero-padded EA (3 digits).
+#' This is the single source of truth for EA_CODE construction across the pipeline.
+#'
+#' @param district (vector) District code values.
+#' @param ta (vector) Traditional Authority code values.
+#' @param ea (vector) Enumeration Area code values (within TA).
+#'
+#' @return character vector of EA_CODE values.
+make_ea_code <- function(district, ta, ea) {
+  stringr::str_c(
+    district,
+    stringr::str_pad(ta, width = 2, pad = "0"),
+    stringr::str_pad(ea, width = 3, pad = "0")
+  )
+}
+
 #' Configure Pandoc for rmarkdown/knitr rendering
 #'
 #' Attempts to locate Pandoc in the following order:
