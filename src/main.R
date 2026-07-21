@@ -170,6 +170,10 @@ tryCatch({
             qa_column_report_csv = normalizePath(qa_col_report_path, mustWork = FALSE),
             qa_duplicate_csv     = normalizePath(qa_dup_report_path, mustWork = FALSE),
             config_path               = normalizePath("src/config.yaml", mustWork = FALSE),
+            transformation_stats_csv  = normalizePath(
+                file.path(qa_output_dir, "data_processing2_transformation_stats.csv"),
+                mustWork = FALSE
+            )
         ),
         quiet = TRUE
     )

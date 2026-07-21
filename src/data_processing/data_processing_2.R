@@ -56,56 +56,109 @@ log_info("dp1 - .. config and datasets loaded successfully")
   ## this section calls in functions from the  helper script to clean
   ## and process the data
 
+  # Compute total EAs in country from shapefile
+  n_total_eas <- length(unique(ea$EA_CODE))
+
   log_info("dp2 - processing census data")
-  mphc_rbind <- get("process_census_data", mode = "function")(mphc_2018, ea, output_path)
+  mphc_rbind    <- get("process_census_data", mode = "function")(mphc_2018, ea, output_path)
+  
+  # Deduplicate raw census data to household level for report metrics
+  # (mphc_rbind is EA-aggregated and no longer has hhnumber)
+  mphc_hh <- mphc_2018 %>%
+    mutate(EA_CODE = make_ea_code(district, ta, ea)) %>%
+    distinct(EA_CODE, !!as.name(data_sources$mphc$household_id_col), .keep_all = TRUE)
+  
+  mphc_ea_covered <- length(unique(mphc_hh$EA_CODE))
+  
+  mphc_dp_stats <- tibble::tibble(
+      source           = "mphc",
+      n_total          = nrow(mphc_2018),
+      n_no_gps         = sum(is.na(mphc_2018[[data_sources$mphc$longitude_col]]) |
+                             is.na(mphc_2018[[data_sources$mphc$latitude_col]])),
+      n_accurate_gps   = NA_integer_,
+      n_inaccurate_gps = NA_integer_,
+      n_ea_changed     = NA_integer_,
+      n_ea_covered     = mphc_ea_covered,
+      n_total_eas      = n_total_eas
+  )
 
   log_info("dp3 - processing ICT data")
-  ICT_rbind <- get("process_gps_household_data", mode = "function")(
+  ict_result <- get("process_gps_household_data", mode = "function")(
     survey_data = ICT_data,
     ea_shapefile = ea,
     source_config = data_sources$ict,
     output_count_col = "ict_hh_count",
     gps_accuracy_threshold_m = data_thresholds$gps_accuracy_threshold_m
   )
+  ICT_rbind <- ict_result$data
+  ict_ea_col <- data_sources$ict$source_ea_col
+  ict_stats <- ict_result$stats %>%
+    mutate(n_ea_covered = length(unique(ICT_rbind[[ict_ea_col]])), n_total_eas = n_total_eas)
 
   output_df <- mphc_rbind %>%
-    left_join(ICT_rbind, by = c("EA_CODE" = "EA_Number"))
+    left_join(ICT_rbind, by = c("EA_CODE" = ict_ea_col))
 
   log_info("dp4 - processing IHS6 data")
-  IHS_rbind <- get("process_gps_household_data", mode = "function")(
+  IHS_result <- get("process_gps_household_data", mode = "function")(
     survey_data = IHS6_data,
     ea_shapefile = ea,
     source_config = data_sources$ihs6,
     output_count_col = "ihs_hh_count",
     gps_accuracy_threshold_m = data_thresholds$gps_accuracy_threshold_m
   )
+  IHS_rbind <- IHS_result$data
+  ihs_ea_col <- data_sources$ihs6$source_ea_col
+  IHS_stats <- IHS_result$stats %>%
+    mutate(n_ea_covered = length(unique(IHS_rbind[[ihs_ea_col]])), n_total_eas = n_total_eas)
 
   output_df <- output_df %>%
     left_join(IHS_rbind, by = "EA_CODE")
 
   log_info("dp5 - processing NACA data")
-  Naca_rbind <- get("process_gps_household_data", mode = "function")(
+  Naca_result <- get("process_gps_household_data", mode = "function")(
     survey_data = Naca_data,
     ea_shapefile = ea,
     source_config = data_sources$naca,
     output_count_col = "naca_hh_count",
     gps_accuracy_threshold_m = data_thresholds$gps_accuracy_threshold_m
   )
+  Naca_rbind <- Naca_result$data
+  naca_ea_col <- data_sources$naca$source_ea_col
+  Naca_stats <- Naca_result$stats %>%
+    mutate(n_ea_covered = length(unique(Naca_rbind[[naca_ea_col]])), n_total_eas = n_total_eas)
 
   output_df <- output_df %>%
-    left_join(Naca_rbind, by = c("EA_CODE" = "EA_Number"))
+    left_join(Naca_rbind, by = c("EA_CODE" = naca_ea_col))
 
   log_info("dp6 - processing DHS listing data")
-  dhs_hh_count <- get("process_dhs_listing_data", mode = "function")(
+  dhs_listing_result <- get("process_dhs_listing_data", mode = "function")(
     dhs_listing_data = dhs_listing,
     segmented_csv_path = segmented_csv_path,
     ea_shapefile = ea,
     source_config = data_sources$dhs_listing,
     dhs_max_distance_m = data_thresholds$dhs_max_distance_m
   )
+  dhs_hh_count <- dhs_listing_result$data
+  dhs_stats <- dhs_listing_result$stats %>%
+    mutate(n_ea_covered = length(unique(dhs_hh_count$EA_CODE)), n_total_eas = n_total_eas)
 
   output_df <- output_df %>%
     left_join(dhs_hh_count, by = "EA_CODE")
+
+  # ── Write transformation stats ──────────────────────────────────────────────────
+  log_info("dp6.5 - writing transformation stats")
+  transformation_stats <- dplyr::bind_rows(
+      mphc_dp_stats %>% mutate(source = "mphc"),
+      ict_stats %>% mutate(source = "ict"),
+      IHS_stats %>% mutate(source = "ihs6"),
+      Naca_stats %>% mutate(source = "naca"),
+      dhs_stats %>% mutate(source = "dhs_listing")
+  )
+  qa_stats_dir <- file.path(drive_path, "quality_assurance")
+  dir.create(qa_stats_dir, recursive = TRUE, showWarnings = FALSE)
+  write.csv(transformation_stats,
+      file.path(qa_stats_dir, "data_processing2_transformation_stats.csv"),
+      row.names = FALSE)
 
   log_info("dp7 - processing DHS survey data")
   dhs_hh_size <- get("process_dhs_survey_data", mode = "function")(
