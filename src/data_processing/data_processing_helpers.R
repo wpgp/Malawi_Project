@@ -31,7 +31,7 @@ clean_census_data <- function(mphc_data){
   # log_info(paste0("Unique Values for 'new_ea' column:",unique(mphc_data_no_gps$new_ea)))
 
   #Create EA_CODE by concatenating district, new_ta and new_ea code
-  mphc_data_no_gps <- mphc_data_no_gps %>%  
+  mphc_data_no_gps <- mphc_data_no_gps %>%
   mutate(EA_CODE = make_ea_code(district, new_ta, new_ea),
           new_ta_ea = str_c(new_ta, new_ea),
           unique_hh_id = str_c(EA_CODE, hhnumber))
@@ -308,7 +308,26 @@ process_gps_household_data <- function(
         group_by(.data[[source_ea_col]]) %>%
         summarise(across(everything(), \(x) sum(x, na.rm = TRUE)), .groups = "drop")
 
-    return(survey_rbind)
+    # ── EA change stats for accurate GPS rows ───────────────────────────────────────
+    accurate_rows <- survey_sf %>%
+        filter(.data[[accuracy_col]] < gps_accuracy_threshold_m)
+    n_accurate   <- nrow(accurate_rows)
+    n_ea_changed <- sum(
+        as.character(accurate_rows[[source_ea_col]]) !=
+        as.character(accurate_rows[[reassigned_ea_col]]),
+        na.rm = TRUE
+    )
+
+    return(list(
+        data  = survey_rbind,
+        stats = tibble::tibble(
+            n_total          = nrow(survey_data),
+            n_no_gps         = nrow(survey_data) - nrow(survey_sf),
+            n_accurate_gps   = n_accurate,
+            n_inaccurate_gps = nrow(survey_sf) - n_accurate,
+            n_ea_changed     = n_ea_changed
+        )
+    ))
 }
 
 
@@ -336,9 +355,13 @@ process_dhs_listing_data <- function(
     non_seg_cluster <- dhs_file %>%
         filter(grepl("^no\\b", Cluster.Segmented, ignore.case = TRUE))
 
+    n_total_clusters <- n_distinct(dhs_listing_data[[cluster_col]])
+
     dhs_listing_data <- dhs_listing_data %>%
         mutate(hh_count = 1) %>%
         filter(.data[[cluster_col]] %in% unique(non_seg_cluster$DHScluster))
+
+    n_nonseg_clusters <- n_distinct(dhs_listing_data[[cluster_col]])
 
     dhs_hh_summary <- dhs_listing_data %>%
         group_by(.data[[cluster_col]]) %>%
@@ -367,6 +390,8 @@ process_dhs_listing_data <- function(
         mutate(nearest_dist_m = distances) %>%
         filter(nearest_dist_m < dhs_max_distance_m)
 
+    n_within_dist <- nrow(dhs_centroids_sf)
+
     nearest_indices <- st_nearest_feature(dhs_centroids_sf, ea_shapefile)
     dhs_centroids_sf$EA_CODE <- ea_shapefile$EA_CODE[nearest_indices]
 
@@ -375,7 +400,16 @@ process_dhs_listing_data <- function(
         group_by(EA_CODE) %>%
         summarise(dhs_hh_count = sum(dhs_hh_count, na.rm = T), .groups = "drop")
 
-    return(dhs_hh_count)
+    return(list(
+        data  = dhs_hh_count,
+        stats = tibble::tibble(
+            n_total_clusters  = n_total_clusters,
+            n_nonseg_clusters = n_nonseg_clusters,
+            n_seg_excluded    = n_total_clusters - n_nonseg_clusters,
+            n_within_dist     = n_within_dist,
+            n_dist_excluded   = n_nonseg_clusters - n_within_dist
+        )
+    ))
 }
 
 
