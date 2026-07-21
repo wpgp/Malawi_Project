@@ -135,6 +135,11 @@ write_run_log(
 
 logger::log_info("Run log written: {run_log_file}")
 
+# ---- Flush logger buffer before rendering report ----
+# The logger package buffers output, so we need to close/reset the appender
+# to ensure all messages are written to the log file before the report reads it
+logger::log_appender(logger::appender_file(run_log_file))
+
 # ---- Render HTML pipeline report -----------------------------------------------
 tryCatch({
     # Configure Pandoc (checks system PATH, then Quarto install, then common locations)
