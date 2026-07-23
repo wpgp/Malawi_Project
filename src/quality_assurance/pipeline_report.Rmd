@@ -90,15 +90,8 @@ if (file.exists(config_file)) {
 }
 
 # ── Load log file from path passed via params ──────────────────────────────────
-log_file_debug <- list(
-  params_log_file = params$log_file,
-  file_exists = if (!is.null(params$log_file)) file.exists(params$log_file) else FALSE,
-  log_lines_count = 0
-)
-
 if (!is.null(params$log_file) && file.exists(params$log_file)) {
   raw_log_lines <- readLines(params$log_file)
-  log_file_debug$log_lines_count <- length(raw_log_lines)
 } else {
   raw_log_lines <- c()
 }
@@ -153,19 +146,6 @@ tibble::tibble(
 ```
 
 **Overall Quality Assurance status:** <span class="`r status_badge_class`">`r overall_status`</span>
-
----
-
-### Debug: Log file status
-
-```{r debug-log-file, results='asis'}
-cat("**Log file path:** `", log_file_debug$params_log_file, "`\n\n", sep = "")
-cat("**File exists:** ", log_file_debug$file_exists, "\n\n", sep = "")
-cat("**Lines loaded:** ", log_file_debug$log_lines_count, "\n\n", sep = "")
-if (log_file_debug$log_lines_count == 0) {
-  cat("⚠ **Warning:** No log lines were loaded. Check that the log file path is correct.\n")
-}
-```
 
 ---
 

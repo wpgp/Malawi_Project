@@ -107,7 +107,16 @@ write_run_log <- function(run_id, log_file_path, config, output_files, qa_summar
     add("Run ID:      ", run_id)
     add("Timestamp:   ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     add("Timepoint:   ", config$run$timepoint)
-    add("User:        ", Sys.getenv("USERNAME", unset = Sys.getenv("USER", unset = "unknown")))
+    github_user <- tryCatch(
+        trimws(system("git config user.name", intern = TRUE, ignore.stderr = TRUE)[1]),
+        error = function(e) ""
+    )
+    if (is.na(github_user) || !nzchar(github_user)) {
+        github_user <- Sys.getenv("GITHUB_ACTOR",
+                       unset = Sys.getenv("USERNAME",
+                       unset = Sys.getenv("USER", unset = "unknown")))
+    }
+    add("User:        ", github_user)
     add("R version:   ", as.character(getRversion()))
     add("sf:          ", as.character(utils::packageVersion("sf")))
     add("tidyverse:   ", as.character(utils::packageVersion("tidyverse")))
