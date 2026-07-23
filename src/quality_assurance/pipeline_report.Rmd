@@ -171,6 +171,43 @@ tibble::tibble(
 
 ### Source data profile
 
+#### Input files (from config)
+
+```{r config-file-list}
+if (!config_loaded) {
+  cat("_Config not available._")
+} else {
+  tibble::tibble(
+    Source = c(
+      "EA shapefile",
+      "MPHC census",
+      "ICT listing",
+      "IHS6 listing",
+      "NACA listing",
+      "DHS listing",
+      "DHS segmented clusters",
+      "DHS survey",
+      "Zomba CSVs",
+      "Malemia"
+    ),
+    `File / Folder` = c(
+      "2018_MPHC_EAs_Final_for_Use.shp",
+      basename(cfg$sources$mphc$data_file),
+      basename(cfg$sources$ict$data_file),
+      basename(cfg$sources$ihs6$data_file),
+      basename(cfg$sources$naca$data_file),
+      basename(cfg$sources$dhs_listing$data_file),
+      basename(cfg$sources$dhs_listing$segmented_csv),
+      basename(cfg$sources$dhs_survey$data_file),
+      cfg$sources$zomba$csv_dir,
+      basename(cfg$sources$malemia$data_file)
+    )
+  ) %>%
+    kable() %>%
+    kable_styling(bootstrap_options = c("condensed", "hover", "striped"), full_width = FALSE)
+}
+```
+
 #### EA shapefile — spatial reference
 
 ```{r ea-shp-load, include=FALSE}
@@ -551,6 +588,27 @@ if (!malemia_available) {
     Value  = c(
       format(n, big.mark = ","),
       paste0(format(n_miss, big.mark = ","), " (", pct_miss, "%)")
+    )
+  ) %>%
+    kable(col.names = NULL) %>%
+    kable_styling(bootstrap_options = c("condensed", "hover"), full_width = FALSE)
+}
+```
+
+### Processing thresholds (from config)
+
+```{r config-thresholds}
+if (!config_loaded) {
+  cat("_Config not available._")
+} else {
+  tibble::tibble(
+    Threshold = c(
+      "GPS accuracy threshold",
+      "DHS max cluster distance"
+    ),
+    Value = c(
+      paste0(cfg$thresholds$gps_accuracy_threshold_m, " m — GPS points with accuracy > this value are treated as inaccurate and not used for spatial reassignment"),
+      paste0(format(cfg$thresholds$dhs_max_distance_m, big.mark = ","), " m — DHS clusters further than this from an EA centroid are excluded")
     )
   ) %>%
     kable(col.names = NULL) %>%
