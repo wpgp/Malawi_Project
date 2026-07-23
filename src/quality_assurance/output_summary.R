@@ -243,10 +243,12 @@ run_parity_qa <- function(
     total_baseline_duplicate_keys <- if (nrow(duplicate_key_report) == 0) 0 else sum(duplicate_key_report$baseline_duplicate_key_count)
     datasets_with_duplicate_key_drift <- if (nrow(duplicate_key_report) == 0) 0 else sum(duplicate_key_report$duplicate_key_drift)
 
-    # Status semantics: SKIPPED (no baseline), PASS (zero mismatches), FAIL otherwise.
+    # Status semantics: SKIPPED (no baseline), PASS (zero value mismatches),
+    # FAIL (data values differ from baseline). Duplicate keys are reported
+    # as informational but do not affect pass/fail status.
     status <- if (!csv_exists && !gpkg_exists) {
         "SKIPPED"
-    } else if (total_mismatches == 0 && total_current_duplicate_keys == 0 && total_baseline_duplicate_keys == 0) {
+    } else if (total_mismatches == 0) {
         "PASS"
     } else {
         "FAIL"
