@@ -12,6 +12,7 @@ config <- load_config()
 run_id       <- format(Sys.time(), "%Y%m%d_%H%M%S")
 log_dir      <- file.path(config$paths$drive_path, "logs")
 dir.create(log_dir, recursive = TRUE, showWarnings = FALSE)
+log_dir      <- normalizePath(log_dir, mustWork = FALSE)
 run_log_file <- file.path(log_dir, paste0("pipeline_run_", run_id, ".log"))
 
 library(logger)
@@ -22,14 +23,16 @@ logger::log_threshold(logger::INFO)
 # section 1
 # previous data processing steps go here, raster mosaicking etc.
 
-# call in data processing
+# call in data processing 2
 data_processing_2_function()
 
+# QA for data processing2
 qa_output_dir <- normalizePath(
     file.path(config$paths$drive_path, "quality_assurance"),
     mustWork = FALSE
 )
 dir.create(qa_output_dir, recursive = TRUE, showWarnings = FALSE)
+qa_output_dir <- normalizePath(qa_output_dir, mustWork = FALSE)
 
 # Run QA for every preprocessing QA block in config and create one combined summary.
 qa_block_names <- names(config)[grepl("_qa$", names(config))]
@@ -165,11 +168,11 @@ tryCatch({
         params = list(
             run_timestamp        = run_id,
             timepoint            = config$run$timepoint,
-            log_file             = normalizePath(run_log_file, mustWork = FALSE),
-            qa_summary_csv       = normalizePath(qa_summary_csv_path, mustWork = FALSE),
-            qa_column_report_csv = normalizePath(qa_col_report_path, mustWork = FALSE),
-            qa_duplicate_csv     = normalizePath(qa_dup_report_path, mustWork = FALSE),
-            config_path               = normalizePath("src/config.yaml", mustWork = FALSE),
+            log_file             = run_log_file,
+            qa_summary_csv       = qa_summary_csv_path,
+            qa_column_report_csv = qa_col_report_path,
+            qa_duplicate_csv     = qa_dup_report_path,
+            config_path               = normalizePath(file.path("src", "config.yaml"), mustWork = FALSE),
             transformation_stats_csv  = normalizePath(
                 file.path(qa_output_dir, "data_processing2_transformation_stats.csv"),
                 mustWork = FALSE
