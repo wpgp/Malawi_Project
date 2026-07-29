@@ -26,31 +26,32 @@ log_info("Begining data Processing,")
     stop("Config could not be loaded.")
   }
   print("Config loaded")
-log_info("dp1 - Loading config, reading data..")
-#Specify Drive Path
-data_dirs <- config$paths
+  
+  log_info("dp1 - Loading config, reading data..")
+  #Specify Drive Path
+  data_dirs <- config$paths
 
-drive_path <- data_dirs$drive_path
-input_path <- file.path(drive_path, data_dirs$mnso_data_dir)
-output_path <- file.path(drive_path, data_dirs$output_dir)
-shapefile_path <- file.path(drive_path, data_dirs$shapefile_dir)
+  drive_path <- data_dirs$drive_path
+  input_path <- file.path(drive_path, data_dirs$mnso_data_dir)
+  output_path <- file.path(drive_path, data_dirs$output_dir)
+  shapefile_path <- file.path(drive_path, data_dirs$shapefile_dir)
 
-data_sources <- config$sources
-data_thresholds <- config$thresholds
+  data_sources <- config$sources
+  data_thresholds <- config$thresholds
 
-#Load datasets
-mphc_2018 <- read_dta(file.path(input_path, data_sources$mphc$data_file))
-ICT_data <- read_dta(file.path(input_path, data_sources$ict$data_file))
-IHS6_data <- read_dta(file.path(input_path, data_sources$ihs6$data_file))
-Naca_data <- read_dta(file.path(input_path, data_sources$naca$data_file))
-dhs_listing <- read_dta(file.path(input_path, data_sources$dhs_listing$data_file))
-dhs_data <- read_dta(file.path(input_path, data_sources$dhs_survey$data_file))
-segmented_csv_path <- file.path(input_path, data_sources$dhs_listing$segmented_csv)
-zomba_csv_dir <- file.path(input_path, data_sources$zomba$csv_dir)
-zomba_output_file <- file.path(output_path, data_sources$zomba$output_file)
-malemia_data <- read.csv(file.path(input_path, data_sources$malemia$data_file))
-ea <- sf::st_read(file.path(shapefile_path, "2018_MPHC_EAs_Final_for_Use.shp"))
-log_info("dp1 - .. config and datasets loaded successfully")
+  #Load datasets
+  mphc_2018 <- read_dta(file.path(input_path, data_sources$mphc$data_file))
+  ICT_data <- read_dta(file.path(input_path, data_sources$ict$data_file))
+  IHS6_data <- read_dta(file.path(input_path, data_sources$ihs6$data_file))
+  Naca_data <- read_dta(file.path(input_path, data_sources$naca$data_file))
+  dhs_listing <- read_dta(file.path(input_path, data_sources$dhs_listing$data_file))
+  dhs_data <- read_dta(file.path(input_path, data_sources$dhs_survey$data_file))
+  segmented_csv_path <- file.path(input_path, data_sources$dhs_listing$segmented_csv)
+  zomba_csv_dir <- file.path(input_path, data_sources$zomba$csv_dir)
+  zomba_output_file <- file.path(output_path, data_sources$zomba$output_file)
+  malemia_data <- read.csv(file.path(input_path, data_sources$malemia$data_file))
+  ea <- sf::st_read(file.path(shapefile_path, "2018_MPHC_EAs_Final_for_Use.shp"))
+  log_info("dp1 - .. config and datasets loaded successfully")
 
   # data processing 2
   ## this section calls in functions from the  helper script to clean
