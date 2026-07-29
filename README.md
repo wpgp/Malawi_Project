@@ -22,11 +22,13 @@ The refactor work consolidates the data pre-processing pipeline into a unified o
 
 ### Running the Pipeline
 
-To run the complete data processing and QA pipeline, use:
+To run the complete data processing and QA pipeline, in an R Interactive terminal use:
 
 ```r
 source("src/main.R")
 ```
+
+Currently this consists of 12 stages each labelled `dp<stage number>` and will take roughly 40 minutes to run.
 
 This will:
 1. **Load configuration** from `src/config.yaml`
