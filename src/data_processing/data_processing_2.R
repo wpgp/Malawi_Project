@@ -21,7 +21,7 @@ log_info("Begining data Processing,")
 
   # setup
   ## this section includes loading config, variables and any datasets
-  config <- get("load_config", mode = "function")()
+  config <- load_config()
   if (is.null(config)) {
     stop("Config could not be loaded.")
   }
@@ -61,7 +61,7 @@ log_info("Begining data Processing,")
   n_total_eas <- length(unique(ea$EA_CODE))
 
   log_info("dp2 - processing census data")
-  mphc_rbind    <- get("process_census_data", mode = "function")(mphc_2018, ea, output_path)
+  mphc_rbind    <- process_census_data(mphc_2018, ea, output_path)
   
   # Deduplicate raw census data to household level for report metrics
   # (mphc_rbind is EA-aggregated and no longer has hhnumber)
@@ -82,9 +82,9 @@ log_info("Begining data Processing,")
       n_ea_covered     = mphc_ea_covered,
       n_total_eas      = n_total_eas
   )
-
+  
   log_info("dp3 - processing ICT data")
-  ict_result <- get("process_gps_household_data", mode = "function")(
+  ict_result <- process_gps_household_data(
     survey_data = ICT_data,
     ea_shapefile = ea,
     source_config = data_sources$ict,
@@ -100,7 +100,7 @@ log_info("Begining data Processing,")
     left_join(ICT_rbind, by = c("EA_CODE" = ict_ea_col))
 
   log_info("dp4 - processing IHS6 data")
-  IHS_result <- get("process_gps_household_data", mode = "function")(
+  IHS_result <- process_gps_household_data(
     survey_data = IHS6_data,
     ea_shapefile = ea,
     source_config = data_sources$ihs6,
@@ -116,7 +116,7 @@ log_info("Begining data Processing,")
     left_join(IHS_rbind, by = "EA_CODE")
 
   log_info("dp5 - processing NACA data")
-  Naca_result <- get("process_gps_household_data", mode = "function")(
+  Naca_result <- process_gps_household_data(
     survey_data = Naca_data,
     ea_shapefile = ea,
     source_config = data_sources$naca,
@@ -132,7 +132,7 @@ log_info("Begining data Processing,")
     left_join(Naca_rbind, by = c("EA_CODE" = naca_ea_col))
 
   log_info("dp6 - processing DHS listing data")
-  dhs_listing_result <- get("process_dhs_listing_data", mode = "function")(
+  dhs_listing_result <- process_dhs_listing_data(
     dhs_listing_data = dhs_listing,
     segmented_csv_path = segmented_csv_path,
     ea_shapefile = ea,
@@ -162,7 +162,7 @@ log_info("Begining data Processing,")
       row.names = FALSE)
 
   log_info("dp7 - processing DHS survey data")
-  dhs_hh_size <- get("process_dhs_survey_data", mode = "function")(
+  dhs_hh_size <- process_dhs_survey_dataon(
     dhs_survey_data = dhs_data,
     ea_shapefile = ea,
     source_config = data_sources$dhs_survey,
@@ -173,7 +173,7 @@ log_info("Begining data Processing,")
     left_join(dhs_hh_size, by = "EA_CODE")
 
   log_info("dp8 - processing Zomba data")
-  zomba_tibble <- get("process_zomba_data", mode = "function")(
+  zomba_tibble <- process_zomba_data(
     zomba_csv_dir = zomba_csv_dir,
     zomba_output_file = zomba_output_file,
     ea_shapefile = ea,
@@ -184,7 +184,7 @@ log_info("Begining data Processing,")
     left_join(zomba_tibble, by = "EA_CODE")
 
   log_info("dp9 - processing Malemia data")
-  malemia_tibble <- get("process_malemia_data", mode = "function")(
+  malemia_tibble <- process_malemia_data(
     malemia_data = malemia_data,
     ea_shapefile = ea,
     source_config = data_sources$malemia

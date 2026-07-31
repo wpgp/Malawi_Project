@@ -511,7 +511,7 @@ process_zomba_data <- function(
     latitude_col <- source_config$latitude_col
     household_size_col <- source_config$household_size_col
 
-    get("rbind_zomba_csvs", mode = "function")(
+    rbind_zomba_csvs(
         csv_dir = zomba_csv_dir,
         output_file = zomba_output_file
     )
