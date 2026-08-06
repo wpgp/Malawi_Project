@@ -815,7 +815,7 @@ if (nrow(flagged) > 0) {
   }
   cat('</div>\n\n')
 } else {
-  cat("### ✓ No warnings or errors\n\n")
+  cat("### ✓ No warnings or errors in log\n\n")
 }
 ```
 
