@@ -1,7 +1,9 @@
-# file contains helper functions used during the data processing steps
+# file contains helper functions used during the processing of local district
+# listings data
 library(sf)
 library(tidyverse)
 library(logger)
+
 
 #' Process Zomba district CSV listings to EA-level counts.
 #'

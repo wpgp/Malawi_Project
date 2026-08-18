@@ -14,6 +14,7 @@ source("src/data_processing/data_processing_helpers.R")
 source("src/data_processing/census_helpers.R")
 source("src/data_processing/gps_household_helpers.R")
 source("src/data_processing/dhs_listings_helpers.R")
+source("src/data_processing/local_district_listing_helpers.R")
 
 
 #' This function will process all steps in the data_processing_2 pipeline
