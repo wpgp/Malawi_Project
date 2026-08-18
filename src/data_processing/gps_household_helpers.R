@@ -1,4 +1,4 @@
-# file contains helper functions used during the data processing steps
+# file contains helper functions used during the processing of gps household data
 library(sf)
 library(tidyverse)
 library(logger)
