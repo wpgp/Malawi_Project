@@ -39,12 +39,12 @@ process_gps_household_data <- function(
 
   ea_col <- source_config$source_ea_col
 
-  census_data <- census_data %>%
+  output_df <- census_data %>%
     left_join(assigned_hh_data, by = c("EA_CODE" = ea_col))
 
   return(list(
-    census_data,
-    assigned_hh_stats
+    output_df = output_df,
+    assigned_hh_stats = assigned_hh_stats
   ))
 }
 
