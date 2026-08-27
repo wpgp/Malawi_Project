@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improvements
 - Refactored `00_Data_Processing2.R` into repeatable, functionalised code.
+- Python script to retrieve covariate data.
+- Method to create mphc shapefiles if they don't exist during the data processing.
+- Helper function to load libraries used.
+- Added .gitignore file for repo security.
+- Improved error handling in data processing and mosaicking scripts.
 
 ### Documentation Update
 
