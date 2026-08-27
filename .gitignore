@@ -3,6 +3,8 @@
 .RData
 .Ruserdata
 
+.github/*
+
 *.Rproj
 
 data/*
